@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>.NET 6, PostgreSQL and EFCore | Dmitriy Naumov's tech blog</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/big-screen.css">
+  <link rel="stylesheet" href="/css/themes.css">
+</head>
+<body>
+  <header class="main-menu-stripe">
+    <div class="width-container pad-05">
+      <label for="main-menu-toggle" class="menuitem main-menu-toggle-label">&#8285;</label>
+      <span><a class="nostyle text-big" href="/index.html"><b>naumov1024.github.io</b></a></span>
+    </div>
+  </header>
+  <main class="main">
+    <div class="width-container pad-05">
+      <h2>.NET 6, PostgreSQL and EFCore tutorial</h2>
+      <p>As we all know, every backend application depends on a database. One of the most popular relational databases is PostgreSQL. So, in this tutorial, you will learn how to set up a database in Unix-like environment and scaffold a database context for your .NET app using EFCore (Entity Framework Core).</p>
+      <h3>Step 1: Database</h3>
+      <p>You can use existing database or create new one. I've done this on an Alpine Linux host. Installation:</p>
+      <codeblock>
+apk add postgresql14
+      </codeblock>
+      <p>Then, let's ensure PostgreSQL is running:</p>
+      <codeblock>
+service postgresql start
+      </codeblock>
+      <p>Let's connect to database and set up a password:</p>
+      <codeblock>
+psql -U postgres
+postgres=# \password
+      </codeblock>
+      <p>Let's create 2 simple tables in database:</p>
+      <codeblock>
+create table public.User (
+  id serial primary key,
+  name text,
+  surname text
+);
+
+create table public.Post (
+  id serial primary key,
+  userId int,
+  textContent text,
+  foreign key (userId) references public.User(id)
+);
+      </codeblock>
+      <p>Let's check how our tables are doing:</p>
+      <codeblock>
+postgres=# \d
+             List of relations
+ Schema |    Name     |   Type   |  Owner   
+--------+-------------+----------+----------
+ public | post        | table    | postgres
+ public | post_id_seq | sequence | postgres
+ public | user        | table    | postgres
+ public | user_id_seq | sequence | postgres
+(4 rows)
+
+postgres=# select * from public.User;
+ id | name | surname | email 
+----+------+---------+-------
+(0 rows)
+
+postgres=# select * from public.Post;
+ id | userid | textcontent 
+----+--------+-------------
+(0 rows)
+      </codeblock>
+      <h3>Step 2: Install .NET</h3>
+      <p>Installing .NET on Linux is not that hard if you know how to do it. To install it on Alpine Linux ensure you have all necessary packages:</p>
+      <codeblock>
+apk add bash icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib
+      </codeblock>
+      <p>And then use official installation script:</p>
+      <codeblock>
+wget https://dot.net/v1/dotnet-install.sh
+chmod +x dotnet-install.sh
+./dotnet-install.sh -c 6.0
+      </codeblock>
+      <p>Now, the tricky part. Add following lines to your .profile or .*shrc and re-login:</p>
+      <codeblock>
+export PATH=$PATH:/home/dmitriy/.dotnet:/home/dmitriy/.dotnet/tools
+export DOTNET_ROOT=/home/dmitriy/.dotnet
+      </codeblock>
+      <p>After logging in, dotnet should be available in command line just for you:</p>
+      <codeblock>
+alpine:~$ dotnet
+
+Usage: dotnet [options]
+Usage: dotnet [path-to-application]
+
+Options:
+  -h|--help         Display help.
+  --info            Display .NET information.
+  --list-sdks       Display the installed SDKs.
+  --list-runtimes   Display the installed runtimes.
+
+path-to-application:
+  The path to an application .dll file to execute.
+      </codeblock>
+      <p>Now, install dotnet-ef tool:</p>
+      <codeblock>
+dotnet tool install --global dotnet-ef --version=6.0.0
+      </codeblock>
+      <h3>Step 3: Create a dotnet app</h3>
+      <codeblock>
+alpine:~$ mkdir PostgresAndNet
+alpine:~$ cd PostgresAndNet
+alpine:~/PostgresAndNet$ dotnet new console
+The template "Console App" was created successfully.
+
+Processing post-creation actions...
+Running 'dotnet restore' on /home/dmitriy/PostgresAndNet/PostgresAndNet.csproj...
+  Determining projects to restore...
+  Restored /home/dmitriy/PostgresAndNet/PostgresAndNet.csproj (in 92 ms).
+Restore succeeded.
+      </codeblock>
+      <p>You should get this directory structure:</p>
+      <codeblock>
+alpine:~/PostgresAndNet$ tree -L 1
+.
+├── PostgresAndNet.csproj
+├── Program.cs
+└── obj
+      </codeblock>
+      <p>Install necessary packages for this project:</p>
+      <codeblock>
+dotnet add package Microsoft.EntityFrameworkCore -v 6.0.0
+dotnet add package Microsoft.EntityFrameworkCore.Design -v 6.0.0
+dotnet add package Microsoft.EntityFrameworkCore.Tools -v 6.0.0
+dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL -v 6.0.0
+      </codeblock>
+      <h3>Step 4: Finally, scaffold the context</h3>
+      <codeblock>
+dotnet ef dbcontext scaffold \
+  "Host=localhost;Port=5432;Username=postgres;Password={ <i>your password</i> }" \
+  "Npgsql.EntityFrameworkCore.PostgreSQL"
+      </codeblock>
+      <p>We get this directory structure:</p>
+      <codeblock>
+alpine:~/PostgresAndNet$ tree -L 1
+.
+├── Post.cs
+├── PostgresAndNet.csproj
+├── Program.cs
+├── User.cs
+├── bin
+├── obj
+└── postgresContext.cs
+      </codeblock>
+      <p>So, without examining and/or analyzing database structure, we used enterprise-grade automated tools to scaffold database context and all model classes. Here is how class User looks like:</p>
+      <codeblock>
+using System;
+using System.Collections.Generic;
+
+namespace PostgresAndNet
+{
+    public partial class User
+    {
+        public User()
+        {
+            Posts = new HashSet<Post>();
+        }
+
+        public int Id { get; set; }
+        public string? Name { get; set; }
+        public string? Surname { get; set; }
+        public string? Email { get; set; }
+
+        public virtual ICollection<Post> Posts { get; set; }
+    }
+}
+      </codeblock>
+      <p>And here is class Post:</p>
+      <codeblock>
+using System;
+using System.Collections.Generic;
+
+namespace PostgresAndNet
+{
+    public partial class Post
+    {
+        public int Id { get; set; }
+        public int? Userid { get; set; }
+        public string? Textcontent { get; set; }
+
+        public virtual User? User { get; set; }
+    }
+}
+      </codeblock>
+      <p>As you can see, EFCore not only retrieves all fields of an entity. It also creates navigational properties which can be used to access child entities in more handy way. Both ways can be used &ndash; you can get User from User table by id or just use User property of Post.</p>
+      <p>Also there is postgresContext.cs, but its implementation details are kind of boring.</p>
+      <codeblock>
+using System;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
+
+namespace PostgresAndNet
+{
+    public partial class postgresContext : DbContext
+    {
+        public postgresContext()
+        {
+        }
+
+        public postgresContext(DbContextOptions&lt;postgresContext> options)
+            : base(options)
+        {
+        }
+
+        public virtual DbSet&lt;Post> Posts { get; set; } = null!;
+        public virtual DbSet&lt;User> Users { get; set; } = null!;
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            if (!optionsBuilder.IsConfigured)
+            {
+                optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Username=postgres;Password={ your password }");
+            }
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity&lt;Post>(entity =>
+            {
+                entity.ToTable("post");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Textcontent).HasColumnName("textcontent");
+
+                entity.Property(e => e.Userid).HasColumnName("userid");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.Posts)
+                    .HasForeignKey(d => d.Userid)
+                    .HasConstraintName("post_userid_fkey");
+            });
+
+            modelBuilder.Entity&lt;User>(entity =>
+            {
+                entity.ToTable("user");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Email).HasColumnName("email");
+
+                entity.Property(e => e.Name).HasColumnName("name");
+
+                entity.Property(e => e.Surname).HasColumnName("surname");
+            });
+
+            OnModelCreatingPartial(modelBuilder);
+        }
+
+        partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+    }
+}
+      </codeblock>
+      <p>So, we have created a PostgreSQL database with 2 simple tables and scaffolded database context for .NET application with EFCore. I hope, in next tutorial we will discuss how to use this database context in an application. Stay tuned!</p>
+    </div>
+  </main>
+  <footer class="footer-stripe">
+    <div class="width-container pad-05">
+      &copy; 2022 &emsp;
+      Dmitriy Naumov &emsp;
+      <a href="mailto:naumov1024@gmail.com">naumov1024@gmail.com</a> &emsp;
+      <a href="https://github.com/dmitriynaumov1024">my github</a>
+    </div>
+  </footer>
+</body>
+</html>
