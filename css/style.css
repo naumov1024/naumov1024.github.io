@@ -140,7 +140,7 @@ a.nostyle {
   padding: 4px 10px 3px;
   font-weight: bold;
   line-height: 1;
-  margin: 12px 10px 12px 2px;
+  margin: 2px 10px 2px 2px;
 }
 
 .main-menu .menuitem+:checked ~ .submenu {
@@ -253,6 +253,7 @@ codeblock {
   font-family: "Noto Mono", "Consolas", monospace;
   font-size: 15px;
   margin-bottom: 1rem; 
+  overflow-x: auto;
 }
 
 /* Paddings and margins */
