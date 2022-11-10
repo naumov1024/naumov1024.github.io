@@ -1,0 +1,36 @@
+.if-mobile.if-mobile {
+
+}
+
+.if-desktop.if-desktop {
+  display: none;
+}
+
+@media screen and (min-width: 740px) {
+  .width-container {
+    width: 720px;
+  }
+
+  .main-menu-stripe {
+    position: sticky;
+    top: 0;
+  }
+
+  .if-mobile.if-mobile {
+    display: none;
+  }
+
+  .if-desktop.if-desktop {
+    display: unset;
+  }
+
+  body {
+    --reserved-for-footer: 7rem;
+  }
+} 
+
+@media screen and (min-width: 980px) {
+  .width-container {
+    width: 960px;
+  }
+}
