@@ -38,14 +38,16 @@ postgres=# \password
 create table public.User (
   id serial primary key,
   name text,
-  surname text
+  surname text,
+  email text
 );
 
 create table public.Post (
   id serial primary key,
   userId int,
   textContent text,
-  foreign key (userId) references public.User(id)
+  foreign key (userId) 
+    references public.User(id)
 );
       </codeblock>
       <p>Let's check how our tables are doing:</p>
