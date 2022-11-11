@@ -67,6 +67,15 @@ a.nostyle {
 }
 
 /* Site menu */
+.site-name {
+  font-family: "Noto Mono", "Consolas", "DejaVu Mono", "Liberation Mono", monospace;
+  text-shadow: var(--site-name-shadow);
+}
+
+.main-menu-content {
+  padding: 6px 10px;
+}
+
 .main-menu-stripe {
   position: sticky;
   top: 0px;
@@ -192,6 +201,14 @@ a.blog-link {
   font-weight: bold; 
 }
 
+a.blog-link:hover {
+  color: var(--color-accent-hover);
+}
+
+a.blog-link:focus {
+  color: var(--color-accent-focus);
+}
+
 .blog-datetime {
   color: var(--color-gray);
 }
@@ -248,12 +265,21 @@ codeblock {
   display: block;
   background-color: var(--color-back-2);
   border-radius: 3px;
-  padding: 1px 1rem;
+  padding: 1px 0.5rem;
   line-height: 1.25;
   font-family: "Noto Mono", "Consolas", monospace;
   font-size: 15px;
   margin-bottom: 1rem; 
   overflow-x: auto;
+}
+
+@media screen and (min-width: 740px) {
+  codeblock {
+    padding: 1px 1rem;
+    border-radius: 7px;
+    box-shadow: inset 3px 3px 5px var(--color-back-3), 
+                inset -4px -4px 5px var(--color-back-0); 
+  }
 }
 
 /* Paddings and margins */
