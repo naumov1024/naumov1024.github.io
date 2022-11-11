@@ -4,15 +4,32 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>.NET 6, PostgreSQL and EFCore | Dmitriy Naumov's tech blog</title>
+  <!-- Open Graph data -->
+  <meta property="og:title" content=".NET 6, PostgreSQL and EFCore">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://naumov1024.github.io/blog/2022/11-10-dotnet-and-postgres.html">
+  <meta name="og:site_name" value="Dmitriy Naumov's tech blog">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/big-screen.css">
   <link rel="stylesheet" href="/css/themes.css">
+  <script type="text/javascript" src="/lib/themes.js"></script>
+  <meta role="topbar-color" name="theme-color" content="">
+  <meta role="topbar-color" name="msapplication-navbutton-color" content="">
+  <meta role="topbar-color" name="apple-mobile-web-app-status-bar-style" content="">
 </head>
 <body>
   <header class="main-menu-stripe">
-    <div class="width-container pad-05">
-      <label for="main-menu-toggle" class="menuitem main-menu-toggle-label">&#8285;</label>
-      <span><a class="nostyle text-big" href="/index.html"><b>naumov1024.github.io</b></a></span>
+    <div class="width-container flex-stripe main-menu-content">
+      <span class="text-big site-name">
+        <a class="nostyle text-big" href="/index.html">naumov1024.github.io</a>
+      </span>
+      <span class="flex-spacer"></span>
+      <svg id="theme-switch" viewBox="0 0 100 100" width="24px" height="24px">
+        <path d="M 10 80  L 10 20  L 20 10  L 80 10  L 90 20  L 20 90  L 10 80 Z" 
+              fill="none" stroke="var(--color-fore-1)" stroke-width="4" />
+        <path d="M 20 90  L 80 90  L 90 80  L 90 20  L 80 10 L 20 90 Z" 
+              fill="var(--color-fore-1)" stroke="var(--color-fore-1)" stroke-width="4" />
+      </svg>
     </div>
   </header>
   <main class="main">
@@ -85,8 +102,8 @@ chmod +x dotnet-install.sh
       </codeblock>
       <p>Now, the tricky part. Add following lines to your .profile or .*shrc and re-login:</p>
       <codeblock>
-export PATH=$PATH:/home/dmitriy/.dotnet:/home/dmitriy/.dotnet/tools
-export DOTNET_ROOT=/home/dmitriy/.dotnet
+export PATH=$PATH:~/.dotnet:~/.dotnet/tools
+export DOTNET_ROOT=~/.dotnet
       </codeblock>
       <p>After logging in, dotnet should be available in command line just for you:</p>
       <codeblock>
@@ -116,9 +133,9 @@ alpine:~/PostgresAndNet$ dotnet new console
 The template "Console App" was created successfully.
 
 Processing post-creation actions...
-Running 'dotnet restore' on /home/dmitriy/PostgresAndNet/PostgresAndNet.csproj...
+Running 'dotnet restore' on ~/PostgresAndNet/PostgresAndNet.csproj...
   Determining projects to restore...
-  Restored /home/dmitriy/PostgresAndNet/PostgresAndNet.csproj (in 92 ms).
+  Restored ~/PostgresAndNet/PostgresAndNet.csproj (in 92 ms).
 Restore succeeded.
       </codeblock>
       <p>You should get this directory structure:</p>
@@ -139,7 +156,7 @@ dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL -v 6.0.0
       <h3>Step 4: Finally, scaffold the context</h3>
       <codeblock>
 dotnet ef dbcontext scaffold \
-  "Host=localhost;Port=5432;Username=postgres;Password={ <i>your password</i> }" \
+  "Host=localhost;Port=5432;Username=postgres;Password={ your password }" \
   "Npgsql.EntityFrameworkCore.PostgreSQL"
       </codeblock>
       <p>We get this directory structure:</p>
@@ -165,7 +182,7 @@ namespace PostgresAndNet
     {
         public User()
         {
-            Posts = new HashSet<Post>();
+            Posts = new HashSet&lt;Post>();
         }
 
         public int Id { get; set; }
@@ -173,7 +190,7 @@ namespace PostgresAndNet
         public string? Surname { get; set; }
         public string? Email { get; set; }
 
-        public virtual ICollection<Post> Posts { get; set; }
+        public virtual ICollection&lt;Post> Posts { get; set; }
     }
 }
       </codeblock>
@@ -222,7 +239,8 @@ namespace PostgresAndNet
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Username=postgres;Password={ your password }");
+                optionsBuilder.UseNpgsql("Host=localhost;Port=5432;"
+                    + "Username=postgres;Password={ your password }");
             }
         }
 
