@@ -7,7 +7,8 @@
   <!-- Open Graph data -->
   <meta property="og:title" content="Fun with Three.js">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://naumov1024.github.io/blog/2023/fun-with-threejs.html">
+  <meta property="og:url" content="https://naumov1024.github.io/blog/2023/02-09-fun-with-threejs.html">
+  <meta property="og:image" content="https://naumov1024.github.io/blog/2023/assets/02-09-fun-with-threejs-thumbnail.png">
   <meta name="og:site_name" value="Dmitriy Naumov's tech blog">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/big-screen.css">
@@ -51,7 +52,8 @@
       <div class="margin-bottom-1">
         <span class="blog-datetime text-small">09 Feb 2023 at 13:11</span>
       </div>
-      <p><i>Copyright notice: this scene has been heavily inspired by <a href="https://youtu.be/c2_eMEd3tVY?start=104">Timecop1983's Memories music video.</a></i></p>
+      <p>This is my attempt of making a simple animated scene, using <a href="https://threejs.org" target="_blank">Three.js</a> &ndash; a simple and flexible Javascript library that utilizes the power of modern web browsing engines to bring 3D graphics to web applications.</p>
+      <p><i>Copyright notice: this scene has been heavily inspired by <a href="https://youtu.be/c2_eMEd3tVY?start=104" target="_blank">Timecop1983's Memories music video</a>.</i></p>
     </div>
   </main>
   <footer class="footer-stripe">
@@ -241,9 +243,9 @@
         .start()
 
     new TWEEN.Tween(pyramid.position)
-        .to({ x: 0, z: pyramid.position.z + 260 }, 12000)
+        .to({ x: 0, z: pyramid.position.z + 200 }, 9000)
         .easing(TWEEN.Easing.Cubic.In)
-        .delay(5000)
+        .delay(4500)
         .repeat(Infinity)
         .start()
 
@@ -295,8 +297,23 @@
     beam2.position.set(25, 40, -33)
     scene.add(beam2)
 
+    function distance (obj1, obj2) {
+        let pos1 = obj1.position, 
+            pos2 = obj2.position
+        return Math.sqrt (
+            (pos1.x - pos2.x)*(pos1.x - pos2.x)
+            + (pos1.y - pos2.y)*(pos1.y - pos2.y)
+            + (pos1.z - pos2.z)*(pos1.z - pos2.z)
+        )
+    }
 
     function renderScene () {
+        shakeMagnitude = 4.0 / (distance(camera, pyramid) + 1)
+        if (shakeMagnitude > 0.045 && pyramid.position.z - 8 <= camera.position.z) {
+            camera.position.x += shakeMagnitude * (Math.random() - 0.5)
+            camera.position.y += shakeMagnitude * 1.7 * (Math.random() - 0.5)
+            camera.position.z += shakeMagnitude * 0.5 * (0.6 * Math.random() - 0.5)
+        }
         requestAnimationFrame(renderScene)
         controls.update()
         TWEEN.update()
